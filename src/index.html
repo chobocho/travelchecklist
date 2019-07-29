@@ -1,8 +1,212 @@
 <html>
+
 <head>
     <title>Check list for travel</title>
 </head>
-<body>
+<style>
+    .jb_table {
+        display: table;
+    }
     
+    .row {
+        border-radius: 10px;
+        display: table-row;
+    }
+    
+    .cell {
+        display: table-cell;
+        vertical-align: top;
+    }
+    
+    textarea {
+        background-color: #fcf3cf;
+    }
+</style>
+
+<script language="JavaScript">
+    var isPassportValid = false;
+    var textareaList = ["name", "passportNumber", "passportExpireDate"];
+    //["travelCountry", "visa", "startDate", "endDate"];
+
+    function OnClearText(idOfTextArea) {
+        document.getElementById(idOfTextArea).value = "";
+    }
+
+
+    function SaveAsJson() {
+        var fileName = document.getElementById("filename").value;
+        if (fileName.length == 0) {
+            fileName = "untitle";
+        }
+
+        fileName += ".json";
+
+        var preData = {};
+        textareaList.forEach(function(e) {
+            preData[e] = document.getElementById(e).value;
+        });
+
+        var jsonData = JSON.stringify(preData);
+
+        var link = document.createElement("a");
+        var file = new Blob([jsonData], {
+            type: "text/plain"
+        });
+        link.href = URL.createObjectURL(file);
+        link.download = fileName;
+        link.click();
+    }
+
+    function OnCheckPassport() {
+        passportExpireDate = document.getElementById('passportExpireDate').value;
+        console.log(passportExpireDate);
+        if (passportExpireDate.length != 8) {
+            console.log(passportExpireDate.length);
+            return;
+        }
+        yy = passportExpireDate.substring(0, 4);
+        mm = passportExpireDate.substring(4, 6);
+        dd = passportExpireDate.substring(6, 8);
+        console.log(yy + " " + mm + " " + dd);
+
+        var expireDate = new Date(yy, mm - 1, dd);
+        console.log(expireDate);
+        var today = new Date()
+        console.log(today);
+        _checkPassportValid(expireDate, today);
+    }
+
+    function _checkPassportValid(expireDate, today) {
+        if (expireDate.getTime() < today.getTime()) {
+            console.log("Expired passport")
+            return;
+        }
+
+        var A_DAY = 1000 * 60 * 60 * 24;
+        var SEVEN_MONTH = 210;
+        var leafTime = Math.floor((expireDate.getTime() - today.getTime()) / A_DAY);
+
+        console.log(leafTime);
+
+        if (leafTime <= SEVEN_MONTH) {
+            console.log("Need update passport. In 6 month, passport will be expired!");
+            return;
+        }
+    }
+
+    function _makeTravelSchedule() {
+        console.log("_makeTravelSchedule()");
+        var travelSchedule = "";
+
+        var itemList = [
+            'Country',
+            'visa',
+            'Departure',
+            'Arrival'
+        ];
+
+        itemList.forEach(function(e) {
+            travelSchedule += "<div class='row'>";
+            travelSchedule += "<span class='cell'>";
+            travelSchedule += e;
+            travelSchedule += "</span>";
+            travelSchedule += "<span class='cell'>";
+            travelSchedule += "<input id='" + e + "'/>";
+            travelSchedule += "</span>";
+            travelSchedule += "</div>";
+        });
+        document.getElementById("travelSchedule").innerHTML = travelSchedule;
+    }
+</script>
+<script lang="javascript">
+    // TDD
+    function passportExireTest() {
+        var today = new Date();
+        var target = new Date("2019", "7", "1");
+        _checkPassportValid(target, today);
+    }
+
+    function OnRunTest() {
+        console.log("OnRunTest");
+        passportExireTest();
+        _makeTravelSchedule();
+    }
+</script>
+
+<body>
+    <INPUT type="button" value="Run Test" onClick="OnRunTest()" />
+
+    <div class="jb_table">
+        <div class="row">
+            <span class="cell">
+            <div>
+              Load:
+              <input
+                type="file"
+                id="load_filename"
+                size="60"
+                onChange="LoadJson()"
+              />
+            </div>
+            <div>
+              FileName <input id="filename" size="60" />
+              <INPUT
+                type="button"
+                value="Clear"
+                onClick="OnClearText('filename')"
+              />
+              <INPUT type="button" value="Save" onClick="SaveAsJson()" />
+              <INPUT type="button" value="Save As Txt" onClick="SaveAsFile()" />
+            </div>
+          </span>
+        </div>
+    </div>
+    <br />
+    <div class="jb_table">
+        <div class="row">
+            <span class="cell">
+            <div>
+              Name
+            </div>
+          </span>
+            <span class="cell">
+            <div>
+              <input id="name"  size="30"/>
+              <INPUT type="button" value="Clear" onClick="OnClearText('name')" />
+          </div>
+            </span>
+        </div>
+
+        <div class="row">
+            <span class="cell">
+              <div>
+                Passport
+              </div>
+            </span>
+            <span class="cell">
+                <div>
+                    Name <input id="passportNanme"  size="30"/>
+                    <INPUT type="button" value="Clear" onClick="OnClearText('passportName')" />
+                </div>
+                <div>
+                    Number <input id="passportNumber"  size="9"/>
+                <INPUT type="button" value="Clear" onClick="OnClearText('passportNumber')" />
+              </div>
+            <div>
+                Exipre date (YYYYMMDD) <input id="passportExpireDate"  size="9"/>
+                <INPUT type="button" value="Clear" onClick="OnClearText('passportExpireDate')" />
+           </div>
+           <div>
+             <input type="button" value="check" onClick="OnCheckPassport()" />
+           </div>
+          </span>
+        </div>
+
+    </div>
+    <div class="jb_table">
+        <div id="travelSchedule"></div>
+    </div>
+
 </body>
+
 </html>
